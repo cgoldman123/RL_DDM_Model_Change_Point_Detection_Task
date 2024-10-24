@@ -1,0 +1,16 @@
+#!/bin/bash
+#
+#SBATCH --partition=c3
+#SBATCH --ntasks=1
+#SBATCH --mem=12000
+#SBATCH --nodes=1
+#SBATCH --workdir=/media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_scripts_CMG/
+#SBATCH --begin=now
+#SBATCH --time=32:00:00
+#
+#################################################
+
+subject_id="${seed}" 
+module load matlab/2022a
+cd /media/labs/rsmith/lab-members/nli/CPD_updated/matlab_scripts
+matlab -nodisplay -nosplash -r "main_CRP('$subject_id')" 
