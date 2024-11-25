@@ -26,10 +26,6 @@ for index, model in enumerate(models, start=1):
     thresh_mapping = model['thresh_mapping']
     field = model['field']
 
-    simfit_drift_mapping = drift_mapping
-    simfit_bias_mapping = bias_mapping
-    simfit_thresh_mapping = thresh_mapping
-    simfit_field = field
 
     for subject in subjects:
 

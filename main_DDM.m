@@ -7,6 +7,10 @@ function [] = main_DDM(subject_id,result_dir)
     else
         root = '/media/labs/';
     end
+    DCM.settings.drift_mapping = 'action_prob';
+    DCM.settings.bias_mapping = '';
+
+    
     %%%%% Set Priors %%%%%%%
     DCM.MDP.reward_lr = 0.1;
     DCM.MDP.inverse_temp = 2;
@@ -15,19 +19,20 @@ function [] = main_DDM(subject_id,result_dir)
     DCM.MDP.starting_bias = .5;
     DCM.MDP.drift_baseline = .085;
     DCM.MDP.drift_mod = .5;   
-    
 
     addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/']);
     addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/toolbox/DEM/']); 
     
-    fit_results = fit_CPD(root, subject_id, DCM);
+    [fit_results, DCM] = fit_CPD(root, subject_id, DCM);
     
     fprintf('Final LL: %f \n',fit_results.LL)
     fprintf('Final Patch Choice Average Action Prob: %f \n',fit_results.patch_choice_avg_action_prob)
     fprintf('Final Dot Motion Average Action Prob: %f \n',fit_results.dot_motion_avg_action_prob)
     
+    simfit_results = simfit_CPD(fit_results,DCM);
 
   writetable(struct2table((fit_results)), [result_dir 'RL_fit_' subject_id '.csv']);
+  % save DCM...
 end
 
         % catch ME

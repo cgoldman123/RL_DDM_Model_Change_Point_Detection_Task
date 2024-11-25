@@ -1,6 +1,6 @@
 % Model fitting script for CPD task
 
-function DCM = CPD_RL_DDM_fit(DCM)
+function DCM = inversion_CPD(DCM)
 
 % MDP inversion using Variational Bayes
 % FORMAT [DCM] = spm_dcm_mdp(DCM)
@@ -91,11 +91,18 @@ pC      = spm_cat(pC);
 M.L     = @(P,M,U,Y)spm_mdp_L(P,M,U,Y);  % log-likelihood function
 M.pE    = pE;                            % prior means (parameters)
 M.pC    = pC;                            % prior variance (parameters)
-
+M.settings = DCM.settings;
 
 % Variational Laplace
 %--------------------------------------------------------------------------
 [Ep,Cp,F] = spm_nlsi_Newton(M,DCM.U,DCM.Y);
+
+%% remember to comment this out
+% Ep = pE;
+% Cp = pC;
+% F = 0;
+%%
+
 
 % Store posterior densities and log evidnce (free energy)
 %--------------------------------------------------------------------------
@@ -138,17 +145,16 @@ end
 
 
 trials = U;
-action_probabilities = CPD_RL_DDM_model(params, trials, 0);    
-choices = action_probabilities.patch_;
+settings = M.settings;
+settings.sim = 0;
+action_probabilities = CPD_RL_DDM_model(params, trials,settings);    
+choices = action_probabilities.patch_choice_action_prob;
 rt_pdf = action_probabilities.dot_motion_rt_pdf;
-model_acc = action_probabilities.model_acc;
 all_values = [choices(:); rt_pdf(:)];
 % Remove NaN values
 all_values = all_values(~isnan(all_values));
 % Take the log of the remaining values and sum them
 L = sum(log(all_values));
-average_action_prob = mean(choices(~isnan(choices)));
-average_model_acc = mean(model_acc(~isnan(model_acc)));
 
  fprintf('LL: %f \n',L)
 %  fprintf('Average choice probability: %f \n',average_action_prob)

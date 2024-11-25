@@ -1,4 +1,4 @@
-function output = fit_CPD(root, subject_id, DCM)
+function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
 
     data_dir = [root '\NPC\Analysis\T1000\data-organized\' subject_id '\T0\behavioral_session\']; % always in T0?
 
@@ -21,46 +21,46 @@ function output = fit_CPD(root, subject_id, DCM)
         file = [data_dir sortedDirectory(file_index).name];
 
         subdat = readtable(file);
-        % if they got past practice (usually 60 trials but can be more/less. Games will always be 290 trials) but don't have the right number
-        % of trials, indicate that they have practice effects and advance 
-        % them to the next file
-        if max(subdat.trial_number) >=60
-            first_game_trial = min(find(subdat.trial_number == 60));
-            clean_subdat = subdat(first_game_trial:end, :);
-            % event code 15 signifies early quit
-            if any(clean_subdat.event_code == 15)
+        % Practice is usually 60 trials but can be more/less. Games will always be 290 trials            
+        % event code 15 signals early quit
+        if any(subdat.event_code == 15)
+            % if they made it passed trial 60, indicate that they have
+            % practice effects and move on
+            if max(subdat.trial_number) >= 60
                 has_practice_effects = true;
-                continue;
-            else
-                % found a complete file!
-                break;
             end
-        else
-            % just did practice
             continue;
+        else
+            % found a complete file!
+            break;
         end
-        
-        
     end
+    last_practice_trial = max(subdat.trial_number) - 290;
+    first_game_trial = min(find(subdat.trial_number == last_practice_trial+1));
+    clean_subdat = subdat(first_game_trial:end, :);
+    
     
     clean_subdat_filtered = clean_subdat(clean_subdat.event_code==7 | clean_subdat.event_code==8 | clean_subdat.event_code==9,:);
+    DCM.behavioral_file = clean_subdat_filtered;
     clean_subdat_filtered.accept_reject_rt = clean_subdat_filtered.response_time;
     % take the last 290 trials
-    last_practice_trial = max(subdat.trial_number) - 290;
+    % event code 7 is game onset, event code 8 means they open a patch, event code 9 means they
+    % accept dot motion.
     games = cell(1,290);
     for (trial_number=1:290)
         game = clean_subdat_filtered(clean_subdat_filtered.trial_number == trial_number+last_practice_trial,:);
         game.accept_reject_rt(1:end-1) = game.accept_reject_rt(2:end);  % Shift elements up
-        game.accept_reject_rt{end} = 'NA';  % Set the last cell to 'NA'
+        game.accept_reject_rt{1} = 'NA';  % Set the first cell to 'NA'
+
         game = game(1:end-1,:);
         games(trial_number) = {game};
     end
-    MDP.trials = games;
     
-        DCM.field  = fieldnames(DCM.MDP);
-    DCM.U = MDP.trials;
+    DCM.field  = fieldnames(DCM.MDP);
+    DCM.U = games;
     DCM.Y = 0;
-    CPD_fit_output= CPD_RL_DDM_fit(DCM);
+    
+    CPD_fit_output= inversion_CPD(DCM);
     
     field = DCM.field;
     for i = 1:length(field)
@@ -87,22 +87,22 @@ function output = fit_CPD(root, subject_id, DCM)
     % Remove NaN values
     all_values = all_values(~isnan(all_values));
     % Take the log of the remaining values and sum them
-    output.id = subject_id;
-    output.has_practice_effects = has_practice_effects;
-    output.num_practice_trials = last_practice_trial + 1;
-    output.LL = sum(log(all_values));
-    output.patch_choice_avg_action_prob = mean(patch_choice_action_prob(~isnan(patch_choice_action_prob)));
-    output.patch_choice_avg_model_acc = mean(patch_choice_model_acc(~isnan(patch_choice_model_acc)));
-    output.dot_motion_avg_action_prob = mean(dot_motion_action_prob(~isnan(dot_motion_action_prob)));
-    output.dot_motion_avg_model_acc = mean(dot_motion_model_acc(~isnan(dot_motion_model_acc)));
+    fit_results.id = subject_id;
+    fit_results.has_practice_effects = has_practice_effects;
+    fit_results.num_practice_trials = last_practice_trial + 1;
+    fit_results.LL = sum(log(all_values));
+    fit_results.patch_choice_avg_action_prob = mean(patch_choice_action_prob(~isnan(patch_choice_action_prob)));
+    fit_results.patch_choice_avg_model_acc = mean(patch_choice_model_acc(~isnan(patch_choice_model_acc)));
+    fit_results.dot_motion_avg_action_prob = mean(dot_motion_action_prob(~isnan(dot_motion_action_prob)));
+    fit_results.dot_motion_avg_model_acc = mean(dot_motion_model_acc(~isnan(dot_motion_model_acc)));
 
-    output.F = CPD_fit_output.F;
+    fit_results.F = CPD_fit_output.F;
     field = fieldnames(DCM.MDP);
     for i=1:length(field)
-        output.(['prior_' field{i}]) = DCM.MDP.(field{i});
+        fit_results.(['prior_' field{i}]) = DCM.MDP.(field{i});
     end
     for i=1:length(field)
-        output.(['fit_' field{i}]) = params.(field{i});
+        fit_results.(['fit_' field{i}]) = params.(field{i});
     end
 
 
