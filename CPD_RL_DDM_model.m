@@ -16,13 +16,11 @@ reward_prior = params.reward_prior;
 nondecision_time = params.nondecision_time;
 
 max_rt = 5;  % filter out games with RTs where .5 < RT < .3
-
+min_rt = .3;
 % Initialize a logical array to mark valid trials
 valid_trials = true(1, length(trials));
 for i = 1:length(trials)
-    rt_values = trials{i}.accept_reject_rt;
-    numeric_values = cellfun(@str2double, rt_values, 'UniformOutput', true);
-    if any(~isnan(numeric_values) & (numeric_values < 0.3 | numeric_values > 0.5))
+    if (~isnan(trials{i}.accept_reject_rt) & ((trials{i}.accept_reject_rt < min_rt | trials{i}.accept_reject_rt > max_rt)))
         valid_trials(i) = false; % Mark as invalid
     end
     if settings.sim
@@ -56,7 +54,7 @@ for trial = 1:length(trials)
         else
             current_row = current_trial(t+1, :); % first row corresponds to event code 7
             patch_action = str2double(current_row.response);
-            dot_motion_rt = str2double(current_row.accept_reject_rt);
+            dot_motion_rt = current_row.accept_reject_rt;
         end
         
         if t == 1
@@ -95,7 +93,7 @@ for trial = 1:length(trials)
                 else
                     current_trial.result(2) = 0;
                 end
-                current_trial.accept_reject_rt(2) = {num2str(simmed_rt)};
+                current_trial.accept_reject_rt(2) = simmed_rt;
                 trials{trial} = current_trial;
             else
                % negative drift and lower bias entail greater probability of
@@ -171,7 +169,7 @@ for trial = 1:length(trials)
                 else
                     current_trial.result(3) = 0;
                 end
-                current_trial.accept_reject_rt(3) = {num2str(simmed_rt)};
+                current_trial.accept_reject_rt(3) = simmed_rt;
                 trials{trial} = current_trial;
             else
                % negative drift and lower bias entail greater probability of
