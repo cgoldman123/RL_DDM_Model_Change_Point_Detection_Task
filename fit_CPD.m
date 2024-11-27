@@ -46,19 +46,28 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     % take the last 290 trials
     % event code 7 is game onset, event code 8 means they open a patch, event code 9 means they
     % accept dot motion.
+    % note that the result column indicates the correct patch for the first
+    % row. For the last row, it indicates if participant chose the correct
+    % patch (1) or incorrect patch (0)
     games = cell(1,290);
     for (trial_number=1:290)
         game = clean_subdat_filtered(clean_subdat_filtered.trial_number == trial_number+last_practice_trial,:);
         game.accept_reject_rt(1:end-1) = game.accept_reject_rt(2:end);  % Shift elements up
         game.accept_reject_rt{1} = 'NA';  % Set the first cell to 'NA'
-
         game = game(1:end-1,:);
+        % note that participants must accept a dot motion for trial to
+        % continue
+        game.accepted_dot_motion = zeros(height(game), 1); % Set all values to 0
+        game.accepted_dot_motion(end) = 1; % set last value to 1
+        
         games(trial_number) = {game};
     end
     
     DCM.field  = fieldnames(DCM.MDP);
     DCM.U = games;
     DCM.Y = 0;
+    DCM.settings.sim = 0;
+
     
     CPD_fit_output= inversion_CPD(DCM);
     
@@ -70,18 +79,20 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
             params.(field{i}) = exp( CPD_fit_output.Ep.(field{i}));           
         elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline'}))
             params.(field{i}) =  CPD_fit_output.Ep.(field{i});
+        elseif any(strcmp(field{i},{'nondecision_time'})) % bound between .1 and .3
+            params.(field{i}) =  0.1 + (0.3 - 0.1) ./ (1 + exp(-CPD_fit_output.Ep.(field{i})));     
         else
             error("param not transformed");
         end
     end
 
 
-    action_probabilities = CPD_RL_DDM_model(params, CPD_fit_output.U, 0);    
-    patch_choice_action_prob = action_probabilities.patch_choice_action_prob;
-    dot_motion_action_prob = action_probabilities.dot_motion_action_prob;
-    rt_pdf = action_probabilities.dot_motion_rt_pdf;
-    patch_choice_model_acc = action_probabilities.patch_choice_model_acc;
-    dot_motion_model_acc = action_probabilities.dot_motion_model_acc;
+    model_output = CPD_RL_DDM_model(params, CPD_fit_output.U, DCM.settings);    
+    patch_choice_action_prob = model_output.patch_choice_action_prob;
+    dot_motion_action_prob = model_output.dot_motion_action_prob;
+    rt_pdf = model_output.dot_motion_rt_pdf;
+    patch_choice_model_acc = model_output.patch_choice_model_acc;
+    dot_motion_model_acc = model_output.dot_motion_model_acc;
     
     all_values = [patch_choice_action_prob(:); rt_pdf(:)];
     % Remove NaN values

@@ -77,7 +77,10 @@ for i = 1:length(DCM.field)
             pC{i,i}    = 1;
         elseif any(strcmp(field,{'reward_prior', 'drift_baseline'}))
             pE.(field) = DCM.MDP.(field)   ;             
-            pC{i,i}    = 0.5;               
+            pC{i,i}    = 0.5;       
+        elseif any(strcmp(field,{'nondecision_time'}))
+            pE.(field) =  -log((0.3 - 0.1) ./ (DCM.MDP.(field) - 0.1) - 1);             
+            pC{i,i}    = 0.5;        
         else
             error("Specify the param to transform!");
         end
@@ -138,6 +141,8 @@ for i = 1:length(field)
         params.(field{i}) = exp(P.(field{i}));           
     elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline'}))
         params.(field{i}) = P.(field{i});
+    elseif any(strcmp(field{i},{'nondecision_time'}))
+        params.(field{i}) = 0.1 + (0.3 - 0.1) ./ (1 + exp(-P.(field{i})));     
     else
         error("param not transformed");
     end
@@ -146,10 +151,9 @@ end
 
 trials = U;
 settings = M.settings;
-settings.sim = 0;
-action_probabilities = CPD_RL_DDM_model(params, trials,settings);    
-choices = action_probabilities.patch_choice_action_prob;
-rt_pdf = action_probabilities.dot_motion_rt_pdf;
+model_output = CPD_RL_DDM_model(params, trials,settings);    
+choices = model_output.patch_choice_action_prob;
+rt_pdf = model_output.dot_motion_rt_pdf;
 all_values = [choices(:); rt_pdf(:)];
 % Remove NaN values
 all_values = all_values(~isnan(all_values));

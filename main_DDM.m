@@ -2,13 +2,14 @@ function [] = main_DDM(subject_id,result_dir)
     dbstop if error;
     if ispc
         root = 'L:/';
-        subject_id = 'AA181';
+        subject_id = 'AA438'; %AA181 AA438 AB418 AD074
         result_dir = [root 'rsmith\lab-members\cgoldman\change_point_detection\fitting_output\test\'];
     else
         root = '/media/labs/';
     end
     DCM.settings.drift_mapping = 'action_prob';
     DCM.settings.bias_mapping = '';
+    DCM.settings.threshold_mapping = '';
 
     
     %%%%% Set Priors %%%%%%%
@@ -19,6 +20,7 @@ function [] = main_DDM(subject_id,result_dir)
     DCM.MDP.starting_bias = .5;
     DCM.MDP.drift_baseline = .085;
     DCM.MDP.drift_mod = .5;   
+    DCM.MDP.nondecision_time = .15;
 
     addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/']);
     addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/toolbox/DEM/']); 

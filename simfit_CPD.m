@@ -9,8 +9,10 @@ for i = 1:length(fields)
         params.(erase(fields{i}, 'fit_')) = fit_results.(fields{i});
     end
 end
-
-sim_data = CPD_RL_DDM_model(params, DCM.U, 1);
+DCM.settings.sim = 1;
+simmed_output = CPD_RL_DDM_model(params, DCM.U, DCM.settings);
+DCM.U = simmed_output.simmed_trials;
+CPD_simfit_output= inversion_CPD(DCM);
 
 
 
