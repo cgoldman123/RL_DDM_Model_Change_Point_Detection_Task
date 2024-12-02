@@ -1,6 +1,6 @@
 function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
 
-    data_dir = [root '\NPC\Analysis\T1000\data-organized\' subject_id '\T0\behavioral_session\']; % always in T0?
+    data_dir = [root '/NPC/Analysis/T1000/data-organized/' subject_id '/T0/behavioral_session/'] % always in T0?
 
     has_practice_effects = false;
     % Manipulate Data
@@ -64,7 +64,6 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
         games(trial_number) = {game};
     end
     
-    DCM.field  = fieldnames(DCM.MDP);
     DCM.U = games;
     DCM.Y = 0;
     DCM.settings.sim = 0;
@@ -102,6 +101,12 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     fit_results.id = subject_id;
     fit_results.has_practice_effects = has_practice_effects;
     fit_results.num_practice_trials = last_practice_trial + 1;
+    fit_results.num_valid_trials = model_output.num_valid_trials;
+    
+    fit_results.drift_mapping = DCM.settings.drift_mapping;
+    fit_results.bias_mapping = DCM.settings.bias_mapping;
+    fit_results.threshold_mapping = DCM.settings.threshold_mapping;
+
     fit_results.LL = sum(log(all_values));
     fit_results.patch_choice_avg_action_prob = mean(patch_choice_action_prob(~isnan(patch_choice_action_prob)));
     fit_results.patch_choice_avg_model_acc = mean(patch_choice_model_acc(~isnan(patch_choice_model_acc)));
