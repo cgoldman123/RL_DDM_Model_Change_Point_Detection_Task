@@ -1,7 +1,3 @@
-Here’s the revised **README** with the note at the top:
-
----
-
 # README
 
 ## **Note: This repository is currently under development.**  
