@@ -20,7 +20,7 @@ min_rt = .3;
 % Initialize a logical array to mark valid trials
 valid_trials = true(1, length(trials));
 for i = 1:length(trials)
-    if (~isnan(trials{i}.accept_reject_rt) & ((trials{i}.accept_reject_rt <= min_rt | trials{i}.accept_reject_rt >= max_rt)))
+    if any(~isnan(trials{i}.accept_reject_rt) & ((trials{i}.accept_reject_rt <= min_rt | trials{i}.accept_reject_rt >= max_rt)))
         valid_trials(i) = false; % Mark as invalid
     end
     if settings.sim

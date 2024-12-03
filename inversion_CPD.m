@@ -69,13 +69,13 @@ for i = 1:length(DCM.field)
         pE.(field) = zeros(size(param));
         pC{i,i}    = diag(param);
     else
-        if any(strcmp(field,{'reward_lr','starting_bias', 'drift_mod'}))
+        if any(strcmp(field,{'reward_lr','starting_bias', 'drift_mod', 'bias_mod'}))
             pE.(field) = log(DCM.MDP.(field)/(1-DCM.MDP.(field)));           
             pC{i,i}    = 0.1;            
         elseif any(strcmp(field,{'inverse_temp','decision_thresh'}))
             pE.(field) = log(DCM.MDP.(field));             
             pC{i,i}    = 1;
-        elseif any(strcmp(field,{'reward_prior', 'drift_baseline'}))
+        elseif any(strcmp(field,{'reward_prior', 'drift_baseline', 'drift'}))
             pE.(field) = DCM.MDP.(field)   ;             
             pC{i,i}    = 0.5;       
         elseif any(strcmp(field,{'nondecision_time'}))
@@ -135,11 +135,11 @@ if ~isstruct(P); P = spm_unvec(P,M.pE); end
 
 field = fieldnames(M.pE);
 for i = 1:length(field)
-    if any(strcmp(field{i},{'reward_lr','starting_bias', 'drift_mod'}))
+    if any(strcmp(field{i},{'reward_lr','starting_bias', 'drift_mod', 'bias_mod'}))
         params.(field{i}) = 1/(1+exp(-P.(field{i}))); 
     elseif any(strcmp(field{i},{'inverse_temp','decision_thresh'}))
         params.(field{i}) = exp(P.(field{i}));           
-    elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline'}))
+    elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline', 'drift'}))
         params.(field{i}) = P.(field{i});
     elseif any(strcmp(field{i},{'nondecision_time'}))
         params.(field{i}) = 0.1 + (0.3 - 0.1) ./ (1 + exp(-P.(field{i})));     

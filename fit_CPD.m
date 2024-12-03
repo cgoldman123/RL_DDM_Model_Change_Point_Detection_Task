@@ -73,11 +73,11 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     
     field = DCM.field;
     for i = 1:length(field)
-        if any(strcmp(field{i},{'reward_lr','starting_bias', 'drift_mod'}))
+        if any(strcmp(field{i},{'reward_lr','starting_bias', 'drift_mod', 'bias_mod'}))
             params.(field{i}) = 1/(1+exp(-CPD_fit_output.Ep.(field{i}))); 
         elseif any(strcmp(field{i},{'inverse_temp','decision_thresh'}))
             params.(field{i}) = exp( CPD_fit_output.Ep.(field{i}));           
-        elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline'}))
+        elseif any(strcmp(field{i},{'reward_prior', 'drift_baseline', 'drift'}))
             params.(field{i}) =  CPD_fit_output.Ep.(field{i});
         elseif any(strcmp(field{i},{'nondecision_time'})) % bound between .1 and .3
             params.(field{i}) =  0.1 + (0.3 - 0.1) ./ (1 + exp(-CPD_fit_output.Ep.(field{i})));     

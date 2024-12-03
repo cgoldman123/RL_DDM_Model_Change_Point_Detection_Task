@@ -1,12 +1,15 @@
 dbstop if error;
+warning('on', 'verbose')
+warning('off', 'MATLAB:colon:operandsNotRealScalar');
+
 if ispc
     root = 'L:/';
-    subject_id = 'AA081'; %AA181 AA438 AB418 AD074 AA081
+    subject_id = 'AA181'; %AA181 AA438 AB418 AD074 AA081
     result_dir = [root 'rsmith\lab-members\cgoldman\change_point_detection\fitting_output\test\'];
     DCM.settings.drift_mapping = 'action_prob';
-    DCM.settings.bias_mapping = '';
+    DCM.settings.bias_mapping = 'action_prob';
     DCM.settings.threshold_mapping = '';
-    DCM.field = {'reward_lr','inverse_temp','reward_prior','decision_thresh','starting_bias','drift_baseline','drift_mod', 'nondecision_time'};
+    DCM.field = {'reward_lr','inverse_temp','reward_prior','decision_thresh','bias_mod', 'drift_baseline', 'drift_mod','nondecision_time'};
 else
     root = '/media/labs/'
     subject_id = getenv('SUBJECT')
@@ -22,10 +25,21 @@ DCM.MDP.reward_lr = 0.1;
 DCM.MDP.inverse_temp = 2;
 DCM.MDP.reward_prior = 0;
 DCM.MDP.decision_thresh = 2;
-DCM.MDP.starting_bias = .5;
-DCM.MDP.drift_baseline = .085;
-DCM.MDP.drift_mod = .5;   
 DCM.MDP.nondecision_time = .15;
+
+if strcmp(DCM.settings.drift_mapping,'action_prob')
+    DCM.MDP.drift_baseline = .085;
+    DCM.MDP.drift_mod = .5;  
+else
+    DCM.MDP.drift = 0;
+end
+
+if strcmp(DCM.settings.bias_mapping,'action_prob')
+    DCM.MDP.bias_mod = .5;  
+else
+    DCM.MDP.starting_bias = .5;
+end
+
 
 addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/']);
 addpath([root 'rsmith/lab-members/clavalley/MATLAB/spm12/toolbox/DEM/']); 
@@ -46,7 +60,8 @@ else
     end
 end
 
-writetable(struct2table((fit_results)), [result_dir 'RLDDM_fit_' subject_id '.csv']);
+writetable(struct2table((fit_results)), [result_dir '/RLDDM_fit_' subject_id '.csv']);
+save([result_dir '/RLDDM_fit_' subject_id '.mat'], 'DCM');
 
 
     % catch ME

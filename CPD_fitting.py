@@ -20,12 +20,11 @@ with open(subject_list_path) as infile:
 
 models = [
     {'field': 'reward_lr,inverse_temp,reward_prior,decision_thresh,starting_bias,drift_baseline,drift_mod,nondecision_time', 'drift_mapping': 'action_prob', 'bias_mapping': '', 'thresh_mapping': ''},
-    {'field': 'reward_lr,inverse_temp,reward_prior,decision_thresh,starting_bias,drift_baseline,drift_mod,nondecision_time', 'drift_mapping': '', 'bias_mapping': 'action_prob', 'thresh_mapping': ''},
-    {'field': 'reward_lr,inverse_temp,reward_prior,decision_thresh,starting_bias,drift_baseline,drift_mod,nondecision_time', 'drift_mapping': 'action_prob', 'bias_mapping': 'action_prob', 'thresh_mapping': ''},
+    {'field': 'reward_lr,inverse_temp,reward_prior,decision_thresh,drift,bias_mod,nondecision_time', 'drift_mapping': '', 'bias_mapping': 'action_prob', 'thresh_mapping': ''},
+    {'field': 'reward_lr,inverse_temp,reward_prior,decision_thresh,bias_mod,drift_baseline,drift_mod,nondecision_time', 'drift_mapping': 'action_prob', 'bias_mapping': 'action_prob', 'thresh_mapping': ''},
 
 ]
 
-k = 0
 for index, model in enumerate(models, start=1):
     combined_results_dir = os.path.join(result_stem, f"model{index}")
     drift_mapping = model['drift_mapping']
@@ -33,10 +32,11 @@ for index, model in enumerate(models, start=1):
     thresh_mapping = model['thresh_mapping']
     field = model['field']
 
+    k = 0
 
     for subject in subjects:
-        if k ==3:
-            break
+        # if k ==3:
+        #     break
     
         if not os.path.exists(f"{combined_results_dir}/logs"):
             os.makedirs(f"{combined_results_dir}/logs")
@@ -56,4 +56,5 @@ for index, model in enumerate(models, start=1):
  
     
 # ###python3 /media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_scripts_DDM/CPD_fitting.py /media/labs/rsmith/lab-members/cgoldman/change_point_detection/fitting_output/RL_DDM
+
 # joblist | grep GNG | grep -Po 13..... | xargs -n1 scancel
