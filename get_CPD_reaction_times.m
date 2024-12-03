@@ -1,6 +1,8 @@
 function get_CPD_reaction_times()
     dbstop if error;
-    subjects = readtable('../CPD_subjects.csv');
+    % use RTs from subjects that were fit
+    fit_table = readtable('L:\rsmith\lab-members\cgoldman\change_point_detection\CPD_analysis\model_results_compiled\CPD_fit_12-2-2024_model1.csv');
+    subjects = fit_table.id;
     everyones_rts = {};
 
     for i = 1:height(subjects)
@@ -41,30 +43,41 @@ function get_CPD_reaction_times()
             end
         end
         
-        if height(subdat) < 20 || max(subdat.trial_number) < 290
-            continue
-        else
-            last_practice_trial = max(subdat.trial_number) - 290;
-            first_game_trial = min(find(subdat.trial_number == last_practice_trial+1));
+        
+        
+        last_practice_trial = max(subdat.trial_number) - 290;
+        first_game_trial = min(find(subdat.trial_number == last_practice_trial+1));
+        clean_subdat = subdat(first_game_trial:end, :);
 
-            % event code 7 is game onset, event code 8 means they open a patch, event code 9 means they
-
-            clean_subdat = subdat(first_game_trial:end, :);
-
-            % Filter rows where event_code is 8 or 9
-            filtered_rows = clean_subdat.event_code == 8 | clean_subdat.event_code == 9;
-
-            % Extract the response_time column (cell array) for these rows
-            response_times = clean_subdat.response_time(filtered_rows);
-
-            % Further filter out rows where response_time is '0'
-            response_times_filtered = response_times(~strcmp(response_times, '0'));
-
-            everyones_rts = [everyones_rts; response_times_filtered];
+        clean_subdat_filtered = clean_subdat(clean_subdat.event_code==7 | clean_subdat.event_code==8 | clean_subdat.event_code==9,:);
+        % take the last 290 trials
+        % event code 7 is game onset, event code 8 means they open a patch, event code 9 means they
+        % accept dot motion.
+        % note that the result column indicates the correct patch for the first
+        % row. For the last row, it indicates if participant chose the correct
+        % patch (1) or incorrect patch (0)
+        for (trial_number=1:290)
+            game = clean_subdat_filtered(clean_subdat_filtered.trial_number == trial_number+last_practice_trial,:);
+            game.accept_reject_rt = nan(height(game),1);
+            for (row=2:height(game)-1)
+                game.accept_reject_rt(row) = str2double(game.response_time(row+1)) - str2double(game.response_time(row));
+            end
+            game = game(1:end-1,:);
+            % note that participants must accept a dot motion for trial to
+            % continue
+            game.accepted_dot_motion = zeros(height(game), 1); % Set all values to 0
+%             game.accepted_dot_motion(end) = 1; % set last value to 1
+            
+            % added this line to extract rts
+            everyones_rts = [everyones_rts; game.accept_reject_rt];
         end
-
     end
-    everyones_rts = cellfun(@str2double, everyones_rts);
+    % Concatenate all the data from the cell array into one numeric array
+    everyones_rts_long = vertcat(everyones_rts{:});
+
+    % Remove NaN values
+    everyones_rts_long = everyones_rts_long(~isnan(everyones_rts_long));
+%     writematrix(everyones_rts_long, 'all_CPD_RTs.csv');
 
 
 end

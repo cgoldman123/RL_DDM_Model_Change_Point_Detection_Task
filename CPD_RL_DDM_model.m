@@ -15,7 +15,7 @@ inverse_temp = params.inverse_temp;
 reward_prior = params.reward_prior;
 nondecision_time = params.nondecision_time;
 
-max_rt = 5;  % filter out games with RTs where .5 < RT < .3
+max_rt = 2;  % filter out games with RTs where .5 < RT < .3
 min_rt = .3;
 % Initialize a logical array to mark valid trials
 valid_trials = true(1, length(trials));

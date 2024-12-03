@@ -22,7 +22,7 @@ end
 
 %%%%% Set Priors %%%%%%%
 DCM.MDP.reward_lr = 0.1;
-DCM.MDP.inverse_temp = 2;
+DCM.MDP.inverse_temp = 2.5;
 DCM.MDP.reward_prior = 0;
 DCM.MDP.decision_thresh = 2;
 DCM.MDP.nondecision_time = .15;
