@@ -42,7 +42,7 @@ for index, model in enumerate(models, start=1):
             os.makedirs(f"{combined_results_dir}/logs")
             print(f"Created results-logs directory {combined_results_dir}/logs")
         
-        ssub_path = '/media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_scripts_DDM/CPD_bash.ssub'
+        ssub_path = '/media/labs/rsmith/lab-members/cgoldman/change_point_detection/scripts/CPD_scripts_DDM/CPD_bash.ssub'
         stdout_name = f"{combined_results_dir}/logs/CPD-%J-{subject}.stdout"
         stderr_name = f"{combined_results_dir}/logs/CPD-%J-{subject}.stderr"
 
@@ -55,6 +55,6 @@ for index, model in enumerate(models, start=1):
 
  
     
-# ###python3 /media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_scripts_DDM/CPD_fitting.py /media/labs/rsmith/lab-members/cgoldman/change_point_detection/fitting_output/RL_DDM
+# ###python3 /media/labs/rsmith/lab-members/cgoldman/change_point_detection/scripts/CPD_scripts_DDM/CPD_fitting.py /media/labs/rsmith/lab-members/cgoldman/change_point_detection/fitting_output/RL_DDM
 
 # joblist | grep GNG | grep -Po 13..... | xargs -n1 scancel

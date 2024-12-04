@@ -1,6 +1,7 @@
 % get probabilities of true action for each trial 
 
 function model_output = CPD_RL_DDM_model(params, trials, settings)
+num_irregular_rts = 0;
 patch_choice_action_prob = nan(2,290);
 patch_choice_model_acc = nan(2,290);
 
@@ -15,21 +16,14 @@ inverse_temp = params.inverse_temp;
 reward_prior = params.reward_prior;
 nondecision_time = params.nondecision_time;
 
-max_rt = 2;  % filter out games with RTs where .5 < RT < .3
-min_rt = .3;
-% Initialize a logical array to mark valid trials
-valid_trials = true(1, length(trials));
-for i = 1:length(trials)
-    if any(~isnan(trials{i}.accept_reject_rt) & ((trials{i}.accept_reject_rt <= min_rt | trials{i}.accept_reject_rt >= max_rt)))
-        valid_trials(i) = false; % Mark as invalid
+max_rt = settings.max_rt;  % only include games where min < RT < max for log likelihood
+min_rt = settings.min_rt;
+
+% clear data for simulation
+if settings.sim
+    for i = 1:length(trials)
+            trials{i} = trials{i}(1, :);
     end
-    if settings.sim
-        trials{i} = trials{i}(1, :);
-    end
-end
-% Keep only the valid trials for fitting
-if ~settings.sim
-    trials = trials(valid_trials);
 end
 
 
@@ -111,9 +105,15 @@ for trial = 1:length(trials)
                 drift = drift * -1;
                 starting_bias = 1 - starting_bias;
             end
-            dot_motion_rt_pdf(t,trial) = wfpt(dot_motion_rt - nondecision_time, drift, decision_thresh, starting_bias);
-            dot_motion_action_prob(t,trial) = integral(@(y) wfpt(y,drift,decision_thresh,starting_bias),0,max_rt - nondecision_time); % participants have .8 seconds to accept/reject dot motion
-            dot_motion_model_acc(t,trial) =  dot_motion_action_prob(t,trial) > .5;
+            
+            % make sure valid trial before factoring into log likelihood
+            if dot_motion_rt >= min_rt && dot_motion_rt <= max_rt
+                dot_motion_rt_pdf(t,trial) = wfpt(dot_motion_rt - nondecision_time, drift, decision_thresh, starting_bias);
+                dot_motion_action_prob(t,trial) = integral(@(y) wfpt(y,drift,decision_thresh,starting_bias),0,max_rt - nondecision_time); % participants have .8 seconds to accept/reject dot motion
+                dot_motion_model_acc(t,trial) =  dot_motion_action_prob(t,trial) > .5;
+            else 
+                num_irregular_rts = num_irregular_rts + 1;
+            end
         end
         
         
@@ -146,7 +146,7 @@ model_output.patch_choice_model_acc = patch_choice_model_acc;
 model_output.dot_motion_action_prob = dot_motion_action_prob;
 model_output.dot_motion_model_acc = dot_motion_model_acc;
 model_output.dot_motion_rt_pdf = dot_motion_rt_pdf;
-model_output.num_valid_trials = length(trials);
+model_output.num_irregular_rts = num_irregular_rts;
 if settings.sim
     model_output.simmed_trials = trials;
 end

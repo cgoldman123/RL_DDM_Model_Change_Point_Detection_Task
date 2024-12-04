@@ -4,7 +4,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=60000
 #SBATCH --nodes=1
-#SBATCH --chdir=/media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_scripts_DDM/
+#SBATCH --chdir=/media/labs/rsmith/lab-members/cgoldman/change_point_detection/scripts/CPD_scripts_DDM/
 #SBATCH --begin=now
 #SBATCH --time=3:00:00
 #

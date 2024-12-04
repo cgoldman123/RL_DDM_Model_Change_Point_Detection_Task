@@ -27,6 +27,10 @@ DCM.MDP.reward_prior = 0;
 DCM.MDP.decision_thresh = 2;
 DCM.MDP.nondecision_time = .15;
 
+% additional settings
+DCM.settings.max_rt = 2;
+DCM.settings.min_rt = .3;
+
 if strcmp(DCM.settings.drift_mapping,'action_prob')
     DCM.MDP.drift_baseline = .085;
     DCM.MDP.drift_mod = .5;  
@@ -60,7 +64,7 @@ else
     end
 end
 
-writetable(struct2table((fit_results)), [result_dir '/RLDDM_fit_' subject_id '.csv']);
+writetable(struct2table(fit_results, 'AsArray', true), [result_dir '/RLDDM_fit_' subject_id '.csv']);
 save([result_dir '/RLDDM_fit_' subject_id '.mat'], 'DCM');
 
 

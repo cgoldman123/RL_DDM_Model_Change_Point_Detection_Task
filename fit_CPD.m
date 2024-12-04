@@ -22,17 +22,22 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
 
         subdat = readtable(file);
         % Practice is usually 60 trials but can be more/less. Games will always be 290 trials            
-        % event code 15 signals early quit
-        if any(subdat.event_code == 15)
-            % if they made it passed trial 60, indicate that they have
-            % practice effects and move on
-            if max(subdat.trial_number) >= 60
-                has_practice_effects = true;
-            end
-            continue;
-        else
-            % found a complete file!
+        % event code 13 signals final score shown. complete file!!!
+        if any(subdat.event_code == 13)
             break;
+        else
+            % if the participant doesn't have any more files to look
+            % through, throw an error because did not finish
+            if k == length(index_array)
+                error("Participant does not have a complete behavioral file");
+            else
+                % if they made it passed trial 60, indicate that they have
+                % practice effects
+                if max(subdat.trial_number) >= 60
+                    has_practice_effects = true;
+                end
+                continue;
+            end
         end
     end
     last_practice_trial = max(subdat.trial_number) - 290;
@@ -101,19 +106,21 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     fit_results.id = subject_id;
     fit_results.has_practice_effects = has_practice_effects;
     fit_results.num_practice_trials = last_practice_trial + 1;
-    fit_results.num_valid_trials = model_output.num_valid_trials;
+    fit_results.num_irregular_rts = model_output.num_irregular_rts;
     
-    fit_results.drift_mapping = DCM.settings.drift_mapping;
-    fit_results.bias_mapping = DCM.settings.bias_mapping;
-    fit_results.threshold_mapping = DCM.settings.threshold_mapping;
 
     fit_results.LL = sum(log(all_values));
     fit_results.patch_choice_avg_action_prob = mean(patch_choice_action_prob(~isnan(patch_choice_action_prob)));
     fit_results.patch_choice_avg_model_acc = mean(patch_choice_model_acc(~isnan(patch_choice_model_acc)));
     fit_results.dot_motion_avg_action_prob = mean(dot_motion_action_prob(~isnan(dot_motion_action_prob)));
     fit_results.dot_motion_avg_model_acc = mean(dot_motion_model_acc(~isnan(dot_motion_model_acc)));
-
     fit_results.F = CPD_fit_output.F;
+
+    setting_names = fieldnames(DCM.settings);
+    for i=1:length(setting_names)
+        fit_results.(['settings_' setting_names{i}]) = DCM.settings.(setting_names{i});
+    end
+    
     field = fieldnames(DCM.MDP);
     for i=1:length(field)
         fit_results.(['prior_' field{i}]) = DCM.MDP.(field{i});
@@ -121,6 +128,7 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     for i=1:length(field)
         fit_results.(['fit_' field{i}]) = params.(field{i});
     end
+
 
 
 
