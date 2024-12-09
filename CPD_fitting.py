@@ -11,7 +11,7 @@ if not os.path.exists(result_stem):
     print(f"Created results directory {result_stem}")
 
 
-subject_list_path = "/media/labs/rsmith/lab-members/cgoldman/change_point_detection/CPD_subjects.csv"
+subject_list_path = "/media/labs/rsmith/lab-members/cgoldman/change_point_detection/T500_list.csv"
 subjects = []
 with open(subject_list_path) as infile:
     for line in infile:

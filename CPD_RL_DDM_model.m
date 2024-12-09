@@ -41,7 +41,7 @@ for trial = 1:length(trials)
         % can't open patch from the last trial on current trial
         if t==2        
             previous_row = current_trial(t, :); % notice it's not t+1
-            previous_result_idx = str2double(previous_row.response)+1;
+            previous_result_idx = (previous_row.response)+1;
             reward_probabilities_temp(:,previous_result_idx) = 0; % zero probability of choosing previous patch again
             row_sums = sum(reward_probabilities_temp, 2); % renormalize two remaining choices
             reward_probabilities_temp = bsxfun(@rdivide, reward_probabilities_temp, row_sums);
@@ -59,7 +59,7 @@ for trial = 1:length(trials)
             current_trial = [current_trial; cell2table(new_row, 'VariableNames', current_trial.Properties.VariableNames)];
         else
             current_row = current_trial(t+1, :); % first row corresponds to event code 7
-            patch_action = str2double(current_row.response);
+            patch_action = (current_row.response);
             dot_motion_rt = current_row.accept_reject_rt;
         end
         

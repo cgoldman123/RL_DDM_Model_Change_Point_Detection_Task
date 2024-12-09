@@ -4,7 +4,7 @@ warning('off', 'MATLAB:colon:operandsNotRealScalar');
 
 if ispc
     root = 'L:/';
-    subject_id = 'AA181'; %AA181 AA438 AB418 AD074 AA081
+    subject_id = 'AQ409'; %AA181 AA438 AB418 AD074 AA081 
     result_dir = [root 'rsmith\lab-members\cgoldman\change_point_detection\fitting_output\test\'];
     DCM.settings.drift_mapping = 'action_prob';
     DCM.settings.bias_mapping = 'action_prob';

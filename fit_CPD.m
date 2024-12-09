@@ -47,6 +47,16 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
     
     clean_subdat_filtered = clean_subdat(clean_subdat.event_code==7 | clean_subdat.event_code==8 | clean_subdat.event_code==9,:);
     DCM.behavioral_file = clean_subdat_filtered;
+    
+    % convert columns to double where applicable
+    colsToConvert = {'response_time', 'result', 'response'};
+    for i = 1:length(colsToConvert)
+        colName = colsToConvert{i};
+        if iscellstr(clean_subdat_filtered.(colName)) || isstring(clean_subdat_filtered.(colName))
+            clean_subdat_filtered.(colName) = str2double(clean_subdat_filtered.(colName));
+        end
+    end
+    
     % take the last 290 trials
     % event code 7 is game onset, event code 8 means they open a patch, event code 9 means they
     % accept dot motion.
@@ -58,7 +68,7 @@ function [fit_results, DCM] = fit_CPD(root, subject_id, DCM)
         game = clean_subdat_filtered(clean_subdat_filtered.trial_number == trial_number+last_practice_trial,:);
         game.accept_reject_rt = nan(height(game),1);
         for (row=2:height(game)-1)
-            game.accept_reject_rt(row) = str2double(game.response_time(row+1)) - str2double(game.response_time(row));
+            game.accept_reject_rt(row) = game.response_time(row+1) - game.response_time(row);
         end
         game = game(1:end-1,:);
         % note that participants must accept a dot motion for trial to
